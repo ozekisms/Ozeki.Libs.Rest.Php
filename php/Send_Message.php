@@ -18,6 +18,6 @@ require 'MessageApi/MessageApi.php';
 		
 		$result = $api -> SendSingle($msg);	
 		
-		var_dump($result);
+		var_dump($result);//
 }		
 ?>
