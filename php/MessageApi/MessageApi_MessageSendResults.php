@@ -4,14 +4,20 @@ namespace Ozeki_PHP_Rest
 {
 	class MessageSendResults
     {
-        public int $TotalCount;
+        public $TotalCount;
 		
-        public int $SuccessCount;
+        public $SuccessCount;
 		
-        public int $FailedCount;
+        public $FailedCount;
 		
         public $Results = array();
-        
+		
+		
+		public function __toString(){
+			
+            return "Total: " . $this -> TotalCount . ". Success: " . $this ->SuccessCount . ". Failed: " . $this ->FailedCount . ".";
+        }
+		
     }
  }
 ?>

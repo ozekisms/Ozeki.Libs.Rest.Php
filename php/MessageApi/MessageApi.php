@@ -6,10 +6,14 @@ require 'Configuration.php';
 require 'Message.php';
 require 'MessageApi_MessageSendResult.php';
 require 'MessageApi_MessageSendResults.php';
+require 'MessageApi_MessageReceiveResult.php';
+require 'MessageApi_MessageManipulateResult.php';
+require 'MessageApi_MessageDeleteResult.php';
+require 'MessageApi_MessageMarkResult.php';
 	
 	class MessageApi	
 	{
-		public Configuration $configuration;
+		public $configuration;
 		
 		//**********************************************
 		// Construction
@@ -75,21 +79,21 @@ require 'MessageApi_MessageSendResults.php';
 		
 		function GetMessageAsArray($message){	
 			return array(
-				'id' => $message -> ID,
-				'from_connection' => $message -> FromConnection,
-				'from_address' => $message -> FromAddress,
-				'from_station' => $message -> FromStation,
-				'to_connection' => $message -> ToConnection,
-				'to_address' => $message -> ToAddress,
-				'to_station' => $message -> ToStation,
-				'text' => $message -> Text,
-				'create_date' => $message -> CreateDate,
-				'valid_until' => $message -> ValidUntil,
-				'time_to_send' => $message -> TimeToSend,
-				'submit_report_requested' => $message -> IsSubmitReportRequested,
-				'delivery_report_requested' => $message -> IsDeliveryReportRequested,
-				'view_report_requested' => $message -> IsViewReportRequested,
-				'tags' => $this -> GetTagsAsArray($message -> GetTags()),
+				self::PROP_NAME_MESSAGE_ID => $message -> ID,
+				self::PROP_NAME_FROM_CONNECTION => $message -> FromConnection,
+				self::PROP_NAME_FROM_ADDRESS => $message -> FromAddress,
+				self::PROP_NAME_FROM_STATION => $message -> FromStation,
+				self::PROP_NAME_TO_CONNECTION => $message -> ToConnection,
+				self::PROP_NAME_TO_ADDRESS => $message -> ToAddress,
+				self::PROP_NAME_TO_STATION => $message -> ToStation,
+				self::PROP_NAME_TEXT => $message -> Text,
+				self::PROP_NAME_CREATE_DATE => $message -> CreateDate,
+				self::PROP_NAME_VALID_UNTIL => $message -> ValidUntil,
+				self::PROP_NAME_TIME_TO_SEND => $message -> TimeToSend,
+				self::PROP_NAME_SUBMIT_REPORT_REQUESTED => $message -> IsSubmitReportRequested,
+				self::PROP_NAME_DELIVERY_REPORT_REQUESTED => $message -> IsDeliveryReportRequested,
+				self::PROP_NAME_VIEW_REPORT_REQUESTED => $message -> IsViewReportRequested,
+				self::PROP_NAME_TAGS => $this -> GetTagsAsArray($message -> GetTags()),
 			);
 		}
 		
@@ -129,20 +133,20 @@ require 'MessageApi_MessageSendResults.php';
 		
 		function ParseMessage($responseMsg){
 			$msg = new Message();
-			$msg-> ID = $this -> getVal($responseMsg, 'message_id');
-			$msg-> FromConnection = $this -> getVal($responseMsg, 'from_connection');
-			$msg-> FromAddress = $this -> getVal($responseMsg, 'from_address');
-			$msg-> FromStation = $this -> getVal($responseMsg, 'from_station');
-			$msg-> ToConnection = $this -> getVal($responseMsg, 'to_connection');
-			$msg-> ToAddress = $this -> getVal($responseMsg, 'to_address');
-			$msg-> ToStation = $this -> getVal($responseMsg, 'to_station');
-			$msg-> Text = $this -> getVal($responseMsg, 'text');
-			$msg-> CreateDate = $this -> getVal($responseMsg, 'create_date');
-			$msg-> ValidUntil = $this -> getVal($responseMsg, 'valid_until');
-			$msg-> TimeToSend = $this -> getVal($responseMsg, 'time_to_send'); 
-			$msg-> IsSubmitReportRequested = $this -> getVal($responseMsg, 'submit_report_requested');
-			$msg-> IsDeliveryReportRequested = $this -> getVal($responseMsg, 'delivery_report_requested'); 
-			$msg-> IsViewReportRequested = $this -> getVal($responseMsg, 'view_report_requested');
+			$msg-> ID = $this -> getVal($responseMsg, self::PROP_NAME_MESSAGE_ID);
+			$msg-> FromConnection = $this -> getVal($responseMsg, self::PROP_NAME_FROM_CONNECTION);
+			$msg-> FromAddress = $this -> getVal($responseMsg, self::PROP_NAME_FROM_ADDRESS);
+			$msg-> FromStation = $this -> getVal($responseMsg, self::PROP_NAME_FROM_STATION);
+			$msg-> ToConnection = $this -> getVal($responseMsg, self::PROP_NAME_TO_CONNECTION);
+			$msg-> ToAddress = $this -> getVal($responseMsg, self::PROP_NAME_TO_ADDRESS);
+			$msg-> ToStation = $this -> getVal($responseMsg, self::PROP_NAME_TO_STATION);
+			$msg-> Text = $this -> getVal($responseMsg, self::PROP_NAME_TEXT);
+			$msg-> CreateDate = $this -> getVal($responseMsg, self::PROP_NAME_CREATE_DATE);
+			$msg-> ValidUntil = $this -> getVal($responseMsg, self::PROP_NAME_VALID_UNTIL);
+			$msg-> TimeToSend = $this -> getVal($responseMsg, self::PROP_NAME_TIME_TO_SEND); 
+			$msg-> IsSubmitReportRequested = $this -> getVal($responseMsg, self::PROP_NAME_SUBMIT_REPORT_REQUESTED);
+			$msg-> IsDeliveryReportRequested = $this -> getVal($responseMsg, self::PROP_NAME_DELIVERY_REPORT_REQUESTED); 
+			$msg-> IsViewReportRequested = $this -> getVal($responseMsg, self::PROP_NAME_VIEW_REPORT_REQUESTED);
 			foreach($responseMsg->tags as $tagIndex => $tagData){
 				$msg->AddTag($tagData->name, $tagData->value);
 			}
@@ -152,13 +156,13 @@ require 'MessageApi_MessageSendResults.php';
 		function ParseSendMessageResult($responseMsg){
 			$msgResult = new MessageSendResult();
 			$msgResult->Message = $this -> ParseMessage($responseMsg);
-			$msgResult->Status = $responseMsg->status;
+			$msgResult->StatusMessage = $responseMsg->status;
 			return $msgResult;
 		}
 		
 		function ParseSendMessageResults ($jsonResponse)
 		{
-			$response = json_decode($jsonResponse);
+			$response = json_decode($jsonResponse);			
 			if($response->response_code != 'SUCCESS')
 				return null;
 			
@@ -179,21 +183,173 @@ require 'MessageApi_MessageSendResults.php';
 			return($results);
 		}		
 				
-		function Send($messages)		
+		function SendMultiple($messages)		
         {	
-			$Username =  $this -> configuration -> Username;
-			$Password =  $this -> configuration -> Password;
+			$username =  $this -> configuration -> Username;
+			$password =  $this -> configuration -> Password;
 			
             $requestBody = $this -> CreateRequestBody_SendMessage($messages);
-            $jsonResponse = $this -> DoRequestPost($this->getUrl_SendMessage(), "application/json", $requestBody, $Username, $Password);
+            $jsonResponse = $this -> DoRequestPost($this->getUrl_SendMessage(), "application/json", $requestBody, $username, $password);
 			$results = $this -> ParseSendMessageResults($jsonResponse);
 			return $results;			
         }
 		
 		function SendSingle($message)
 		{
-			$results = $this -> Send(array($message));			
-			return $results;
+			$results = $this -> SendMultiple(array($message));			
+			return $results -> Results[0];
+		}
+		
+		/*************************************
+		//Receive
+		**************************************/
+		
+		function getUrl_ReceiveMessage($folder)
+        {           
+			$apiUrl = rtrim($this -> configuration -> ApiUrl,'?');
+			return $apiUrl . "?action=receivemsg&folder=". $folder;
+        }
+		
+		function DoRequestGet($url, $username , $password)
+		{													
+			$ch = curl_init();
+			curl_setopt($ch,CURLOPT_URL, $url);			
+			curl_setopt($ch, CURLOPT_USERPWD, $username. ":" .$password);
+			curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);						
+			$result = curl_exec($ch);
+			
+			curl_close($ch);			
+			return ($result);
+		}	
+		
+		function ParseReceiveMessageResult($jsonResponse)
+		{
+			$response = json_decode($jsonResponse);
+			
+			if($response->response_code != 'SUCCESS')
+				return null;
+			
+			$messageResults = [];
+			$messages = $response->data->data;
+			foreach($messages as $key => $value)
+			{
+				$msgResult = $this -> ParseMessage($value);
+				array_push($messageResults, $msgResult);
+			}
+			
+			$result = new MessageReceiveResult();						
+			$result->Folder = $response->data->folder;
+			$result->Limit = $response->data->limit;
+			$result->Messages = $messageResults;
+			
+			return($result);
+		}	
+		
+		function DownloadIncoming()		
+        {	
+			$username =  $this -> configuration -> Username;
+			$password =  $this -> configuration -> Password;
+			
+            $jsonResponse = $this -> DoRequestGet($this->getUrl_ReceiveMessage(self::FOLDER_INBOX), $username, $password);			
+			$results = $this -> ParseReceiveMessageResult($jsonResponse);			
+			return $results;			
+        }
+		
+		/*************************************
+		//Manipulate
+		**************************************/
+		
+		function CreateRequestBody_ManipulateMessage($folder, $messageIds)			
+		{		
+			$body = array(
+				'folder' => $folder,
+				'message_ids' => $messageIds,
+			);
+			$ret = json_encode($body);			
+			return $ret;
+		}	
+		
+		
+		function getUrl( $action)
+        {
+            $apiUrl = rtrim($this -> configuration -> ApiUrl,'?');
+			return $apiUrl . "?action=" . $action;
+        }
+		
+		
+		function ParseManipulateMessageResult ($jsonResponse)
+		{
+			$response = json_decode($jsonResponse);	
+			
+			if($response->response_code != 'SUCCESS')
+				return null;
+			
+			$messageIDResults = [];
+			$message_ids = $response->data->message_ids;
+			foreach($message_ids as $key => $value)
+			{
+				$msgIdResult = $value;
+				array_push($messageIDResults, $msgIdResult);
+			}
+			
+			$results = new MessageManipulateResult();
+			$results->Folder = $response->data->folder; ;
+			$results->MessageIds = $messageIDResults;
+			
+			return($results);
+		}		
+		
+		function manipulate($folder, $messageIds, $action)
+        {	
+			$username =  $this -> configuration -> Username;
+			$password =  $this -> configuration -> Password;
+            
+            $requestBody = $this -> CreateRequestBody_ManipulateMessage($folder, $messageIds);
+			$jsonResponse = $this -> DoRequestPost($this->getUrl($action), "application/json", $requestBody, $username, $password);
+			$result = $this -> ParseManipulateMessageResult($jsonResponse);
+            return $result;
+        }
+		
+		/*************************************
+		//Delete
+		**************************************/
+		
+		function DeleteMultiple($messages){
+			$messageIds = [];
+			
+			foreach($messages as $key => $value)
+			{
+				$messageId = $value -> ID;
+				array_push($messageIds, $messageId);
+			}
+			
+			return $this -> manipulate(self::FOLDER_INBOX,$messageIds,"deletemsg",);
+		}
+		
+		function DeleteSingle($message){
+			return $this -> DeleteMultiple(array($message));
+		}
+			
+		
+		/*************************************
+		//Mark
+		**************************************/
+		
+		function MarkMultiple($messages){
+			$messageIds = [];
+			
+			foreach($messages as $key => $value)
+			{
+				$messageId = $value -> ID;
+				array_push($messageIds, $messageId);
+			}
+			
+			return $this -> manipulate(self::FOLDER_INBOX,$messageIds,"markmsg",);
+		}
+		
+		function MarkSingle($message){
+			return $this -> MarkMultiple(array($message));
 		}
 			
 	}	

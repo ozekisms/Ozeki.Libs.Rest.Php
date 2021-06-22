@@ -4,9 +4,13 @@ namespace Ozeki_PHP_Rest
 {
 	class MessageSendResult
     {
-        public Message $Message;       
+        public $Message;       
 
-        public string $StatusMessage;       
+        public $StatusMessage;
+
+		public function __toString(){
+			return $this -> StatusMessage . ", " . strval($this -> Message);
+		}
 	}
  }
 ?>

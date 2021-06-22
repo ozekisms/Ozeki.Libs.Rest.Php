@@ -8,55 +8,55 @@ namespace Ozeki_PHP_Rest;
         // Id
         //**********************************************
         		
-		public ?string $ID = null;
+		public $ID = null;
 		
         //**********************************************
         // From
         //**********************************************
 
-        public ?string $FromConnection = null;
+        public $FromConnection = null;
 				
-        public ?string $FromAddress = null;
+        public $FromAddress = null;
 					
-		public ?string $FromStation = null;
+		public $FromStation = null;
 		
         //**********************************************
         // To
         //**********************************************
 
-		public ?string $ToConnection = null;
+		public $ToConnection = null;
 		
-		public ?string $ToAddress = null;
+		public $ToAddress = null;
 		
-		public ?string $ToStation = null;
+		public $ToStation = null;
 		
         //**********************************************
         // Text
         //**********************************************
 
-		public ?string $Text = null;
+		public $Text = null;
 		
         //**********************************************
         // Dates
         //**********************************************
 
-		public ?string $CreateDate = null;
+		public $CreateDate = null;
 		
-		public ?string $ValidUntil = null;
+		public $ValidUntil = null;
 		
-		public ?string $TimeToSend = null;
+		public $TimeToSend = null;
 		
         //**********************************************
         //* Reports
         //**********************************************
 
-		public ?bool $IsSubmitReportRequested = null;
+		public $IsSubmitReportRequested = True;
 		
-		public ?bool $IsDeliveryReportRequested = null;
+		public $IsDeliveryReportRequested = True;
 		
-		public ?bool $IsViewReportRequested = null;
+		public $IsViewReportRequested = True;
 				
-		public ?array $tags = array();
+		public $tags = array();
 		
         public function AddTag($key, $value)
         {            
@@ -101,6 +101,26 @@ namespace Ozeki_PHP_Rest;
             $this -> IsDeliveryReportRequested = true;
             $this -> IsViewReportRequested = true;			
         }
+		
+		public function __toString(){
+			$ret = "";
+			if(!empty($this -> FromAddress))
+				$ret .= $this -> FromAddress;
+			else
+				$ret .= $this -> FromConnection;
+			
+			$ret .= "->";
+			
+			if(!empty($this -> ToAddress))
+				$ret .= $this -> ToAddress;
+			else
+				$ret .= $this -> ToConnection;
+			
+			if(!empty($this -> Text))
+				$ret .= " '" . $this -> Text . "'";
+			
+			return $ret;
+		}
 	}	
 }
 ?>
