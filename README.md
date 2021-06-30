@@ -2,7 +2,7 @@
 
 This PHP sms library allows you to **send**, **receive**, **delete** and **mark** messages from PHP with http requests.
 The library uses HTTP Post requests and JSON encoded content to send the text messages to the mobile network.
-It uses the HTTP SMS api of the [Ozeki SMS gateway](https://ozeki-sms-gateway.com
+It uses the HTTP SMS api of the [Ozeki SMS gateway](https://ozeki-sms-gateway.com)
 
 # What is Ozeki SMS Gateway
 
